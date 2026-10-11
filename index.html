@@ -1,0 +1,1081 @@
+<title>¿Quién Me Reprobó?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Figtree:ital,wght@0,400;0,600;0,800;1,400&display=swap">
+<style>
+:root{
+  /* Layout: tablero escolar 3×3 con la ofrenda al centro; libreta y bitácora al lado; una columna en teléfono. Noche única, sin tema claro. */
+  color-scheme:dark;
+  --noche:#150e29; --noche2:#211741; --noche3:#2d2056;
+  --hueso:#f2e8d7; --ceniza:#a597c6; --linea:rgba(242,232,215,.14);
+  --cempasuchil:#f79a1e; --rosa:#ec4189; --turquesa:#35b9a7; --morado:#8a5ae0; --amarillo:#f4cd3c; --rojo:#c81e3a;
+  --papel:#f6e9d0; --tinta:#2a1a13;
+  --f-display:'Rye', Georgia, 'Times New Roman', serif;
+  --f-body:'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+html,body{background:var(--noche);color:var(--hueso)}
+body{
+  font-family:var(--f-body);font-size:15px;line-height:1.5;padding:0 16px 48px;
+  background:radial-gradient(ellipse 80% 420px at 50% 0%,rgba(247,154,30,.15),transparent 70%),var(--noche);
+}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amarillo);outline-offset:2px}
+
+Sound.syncButtons();
+
+/* Papel picado */
+.picado{display:flex;justify-content:center;gap:6px;overflow:hidden;margin:0 -16px;padding-top:12px;position:relative}
+.picado::before{content:"";position:absolute;left:0;right:0;top:11px;height:2px;background:var(--ceniza);opacity:.5}
+.flag{flex:0 0 56px;height:62px;background:var(--c);transform-origin:top center;
+  clip-path:polygon(0 0,100% 0,100% 80%,87.5% 100%,75% 80%,62.5% 100%,50% 80%,37.5% 100%,25% 80%,12.5% 100%,0 80%);
+  -webkit-mask:radial-gradient(circle,#0000 2.4px,#000 3px) 0 3px/11px 11px;
+          mask:radial-gradient(circle,#0000 2.4px,#000 3px) 0 3px/11px 11px;
+  animation:sway 3.6s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+
+header{max-width:1180px;margin:0 auto;padding-block:22px 18px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+header .t{min-width:0;max-width:640px}
+.hdr-actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn.snd{padding:8px 14px;font-weight:600}
+.btn.snd[aria-pressed="true"]{border-color:var(--cempasuchil);color:var(--cempasuchil);font-weight:800}
+.btn.snd[aria-pressed="false"]{color:var(--ceniza)}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1;margin:0 0 10px;color:var(--cempasuchil);text-shadow:3px 3px 0 var(--rosa);text-wrap:balance}
+header p{margin:0;color:var(--ceniza);max-width:60ch}
+
+.layout{display:grid;gap:20px;max-width:1180px;margin:0 auto}
+@media (min-width:920px){.layout{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:start}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.box{background:var(--noche2);border:1px solid var(--linea);border-radius:14px;padding:16px;min-width:0}
+h2{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ceniza);margin:0 0 10px}
+
+.status{display:flex;align-items:center;gap:10px;font-size:16px;margin-bottom:12px;min-height:28px}
+.status b{font-weight:800}
+
+/* Mapa */
+.map{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.map.rapido .room{min-height:118px}
+.map.rapido .room.patio .rn{font-size:17px}
+.room{appearance:none;position:relative;min-height:104px;border-radius:12px;background:var(--noche2);border:1.5px solid var(--linea);padding:10px;text-align:left;display:flex;flex-direction:column;gap:3px;cursor:default;min-width:0}
+.room .rn{font-family:var(--f-display);font-size:17px;line-height:1.1;overflow-wrap:anywhere}
+.room .rs{font-size:11.5px;color:var(--ceniza);line-height:1.3}
+.room .pas{font-size:10.5px;color:var(--amarillo);letter-spacing:.02em}
+.room .toks{margin-top:auto;display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding-top:6px}
+.room.adj{border:1.5px dashed var(--cempasuchil);background:var(--noche3);cursor:pointer;transition:transform .15s,background .15s}
+.room.adj:hover{transform:translateY(-2px);background:#3a2a69}
+.room.here{box-shadow:inset 0 0 0 2px var(--hueso)}
+.room.patio{align-items:center;text-align:center;justify-content:center;border-color:rgba(247,154,30,.55);
+  background:radial-gradient(circle at 50% 75%,rgba(247,154,30,.38),transparent 70%),var(--noche3)}
+.room.patio .rn{color:var(--cempasuchil);font-size:20px}
+.room.patio .toks{justify-content:center;margin-top:6px}
+.tok{width:24px;height:24px;border-radius:50%;background:var(--c);color:var(--tinta);font-size:10px;font-weight:800;display:grid;place-items:center;flex:none}
+.tok.me{outline:2px solid var(--hueso);outline-offset:1px}
+.ptag{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:99px;background:rgba(236,65,137,.2);color:#ff8dbb}
+@media (max-width:640px){.room{min-height:84px;padding:6px}.room .rs,.room .pas{display:none}.room .rn{font-size:13px}.room.patio .rn{font-size:15px}.tok{width:20px;height:20px;font-size:9px}}
+
+/* Panel de acciones */
+.panel{margin-top:14px;display:flex;flex-direction:column;gap:12px}
+.panel p{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--linea);background:var(--noche);border-radius:99px;padding:6px 12px;font-size:13.5px;cursor:pointer}
+.chip:hover{border-color:var(--c)}
+.chip[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--tinta);font-weight:800}
+.grp-p{--c:var(--rosa)} .grp-m{--c:var(--cempasuchil)} .grp-l{--c:var(--turquesa)}
+.lbl{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--c);margin-bottom:6px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:0;border-radius:10px;padding:10px 16px;background:var(--cempasuchil);color:var(--tinta);font-weight:800;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn.rosa{background:var(--rosa)}
+.btn.ghost{background:transparent;border:1px solid var(--linea);color:var(--hueso)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.reveal{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.reveal .txt{flex:1 1 220px;min-width:0}
+
+/* Cartas de lotería */
+.carta{--c:var(--rosa);width:104px;background:var(--papel);color:var(--tinta);border-radius:8px;padding:6px;display:flex;flex-direction:column;box-shadow:0 2px 0 rgba(0,0,0,.35);flex:none}
+.carta.p{--c:var(--rosa)} .carta.m{--c:var(--cempasuchil)} .carta.l{--c:var(--turquesa)}
+.carta .ct{display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.carta .ill{background:var(--c);border-radius:4px;display:grid;place-items:center;padding:8px 0;border:1.5px solid var(--tinta)}
+.carta .ill svg{width:40px;height:40px;display:block}
+.carta .nm{font-family:var(--f-display);font-size:12.5px;line-height:1.15;text-align:center;margin-top:6px;text-wrap:balance;overflow-wrap:anywhere}
+.carta .sb{font-size:10px;text-align:center;opacity:.72;line-height:1.25;margin-top:2px}
+.carta.big{width:160px;padding:8px}
+.carta.big .ill svg{width:60px;height:60px}
+.carta.big .nm{font-size:16px}
+.carta.big .sb{font-size:11.5px}
+button.carta{border:0;cursor:pointer;text-align:inherit;font:inherit}
+button.carta:hover{transform:translateY(-3px)}
+.hand{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Libreta */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:2px 4px;border-bottom:1px solid var(--linea)}
+thead th{font-size:10.5px;font-weight:800;color:var(--ceniza);text-align:center;letter-spacing:.06em}
+tr.grp th{text-align:left;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--c);padding-top:12px;border-bottom-color:transparent}
+td.nm{width:100%;padding-right:8px}
+tr.out td.nm{text-decoration:line-through;color:var(--ceniza)}
+td.c{text-align:center}
+.nb{width:28px;height:24px;border-radius:6px;border:1px solid var(--linea);background:transparent;font-weight:800;cursor:pointer;line-height:1}
+.nb.s1{color:var(--rosa)} .nb.s2{color:var(--turquesa)} .nb.s3{color:var(--amarillo)}
+.nb.auto{background:var(--noche3);color:var(--turquesa);cursor:default;border-color:transparent}
+
+/* Bitácora */
+.log{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.log li{padding:6px 10px;border-radius:8px;background:var(--noche)}
+.log li.rnd{background:transparent;color:var(--ceniza);text-align:center;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding:2px}
+.log li.key{background:rgba(244,205,60,.12)}
+.who{color:var(--c);font-weight:800}
+
+details.reglas summary{cursor:pointer;font-weight:800}
+details.reglas ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px;color:var(--ceniza)}
+details.reglas li b{color:var(--hueso)}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(10,6,22,.8);display:flex;overflow:auto;padding:16px}
+.modal[hidden]{display:none}
+.modal.opaque{background:var(--noche)}
+.handoff{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.tok.big{width:64px;height:64px;font-size:22px}
+.tok.out{opacity:.4}
+.seats{display:flex;flex-direction:column;gap:10px}
+.seat{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--linea);border-radius:99px;overflow:hidden;flex:none}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:13.5px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--cempasuchil);color:var(--tinta);font-weight:800}
+.seat input{flex:1 1 140px;min-width:0;background:var(--noche);border:1px solid var(--linea);border-radius:8px;padding:7px 10px;color:var(--hueso);font:inherit}
+.ainame{color:var(--ceniza);font-style:italic}
+.warn{color:#ff8dbb}
+.profe-setup{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.hidden-note{color:var(--ceniza);font-size:13.5px;margin:0}
+.sheet{margin:auto;background:var(--noche2);border:1px solid var(--linea);border-radius:16px;padding:22px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:14px}
+.sheet h3{font-family:var(--f-display);font-weight:400;font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.1;margin:0;color:var(--cempasuchil);text-wrap:balance}
+.sheet p{margin:0}
+.verso{background:var(--papel);color:var(--tinta);border-radius:10px;padding:16px 18px;text-align:center}
+.verso .vt{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;color:var(--rojo)}
+.verso p{font-style:italic;font-size:16px;line-height:1.55}
+.sol{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.muted{color:var(--ceniza)}
+
+@media (prefers-reduced-motion:reduce){.flag{animation:none}.room.adj,button.carta{transition:none}.room.adj:hover,button.carta:hover{transform:none}}
+</style>
+
+<div class="picado" id="picado" aria-hidden="true"></div>
+
+<header>
+  <div class="t">
+    <h1>¿Quién me reprobó?</h1>
+    <p>Es noche de muertos y volviste a la escuela a resolver la duda que no te deja descansar. Seis profes sospechosos, seis maneras de reprobar, catorce rincones del departamento: del Y1 al Y9, los laboratorios y la Jefatura. Descubre quién fue, cómo y dónde, antes que las otras ánimas.</p>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn ghost snd" data-action="music" aria-pressed="false"><span aria-hidden="true">♪</span> Música</button>
+    <button class="btn ghost snd" data-action="sfx" aria-pressed="true">Efectos</button>
+    <button class="btn ghost" data-action="new">Nueva partida</button>
+  </div>
+</header>
+
+<main class="layout">
+  <div class="col">
+    <section class="box" aria-label="Tablero">
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+      <div class="map" id="map"></div>
+      <div class="panel" id="panel"></div>
+    </section>
+    <details class="box reglas" id="reglas">
+      <summary>Cómo se juega</summary>
+      <ul>
+        <li>En cada partida entran seis profes al azar de los dieciocho del plantel, o los que elijan en <b>Nueva partida</b>.</li>
+        <li>Al empezar se esconden tres cartas: <b>el profe</b>, <b>el método</b> y <b>el lugar</b> donde te reprobaron. El resto se reparte entre tú y las tres ánimas.</li>
+        <li><b>Modo rápido:</b> en Nueva partida elijan el mapa rápido para jugar con 8 lugares, 5 métodos y 5 profes al azar.</li>
+        <li>Cada turno flotas a un lugar vecino. Las esquinas tienen <b>pasadizos secretos</b> a la esquina opuesta.</li>
+        <li>En un salón haces una <b>sospecha</b>: un profe y un método en ese lugar. Las ánimas, en orden, revisan sus cartas; la primera que tenga una te la enseña.</li>
+        <li>Si nadie puede desmentirte, ninguna ánima tiene esas cartas. Fíjate también cuando otras ánimas sospechan: quién pasa y quién enseña algo es información.</li>
+        <li>Cuando tengas la respuesta, ve al <b>Patio de la Ofrenda</b> y acusa. Si fallas, pierdes.</li>
+        <li>Pueden jugar de 1 a 4 personas en el mismo dispositivo; los lugares libres los ocupan ánimas de la computadora. El juego avisa cuándo pasar el dispositivo para que cada quien vea solo sus cartas y su libreta.</li>
+        <li>Si alguien acusa mal, queda fuera pero sigue enseñando cartas. Si una ánima llega a la ofrenda con la respuesta, gana ella.</li>
+        <li>En la libreta, toca una casilla para marcar <b>✗</b> no la tiene, <b>✓</b> la tiene o <b>?</b> duda.</li>
+      </ul>
+    </details>
+  </div>
+  <div class="col">
+    <section class="box"><h2 id="hand-title">Tus cartas</h2><div class="hand" id="hand"></div></section>
+    <section class="box"><h2 id="libreta-title">Libreta</h2><div class="tbl" id="libreta"></div></section>
+    <section class="box"><h2>Bitácora</h2><ol class="log" id="log"></ol></section>
+  </div>
+</main>
+
+<div class="modal" id="modal" hidden></div>
+
+<script>
+
+const PROFES = [
+  { id: 'p01', name: 'Dr. Pagolápida', short: 'Pagola', sub: 'Ni la Muerte le gana un examen',
+    verse: ['Al Dr. Pagola la Muerte', 'quiso llevarse al panteón,', 'pero él le pidió la tarea', 'y ella reprobó la lección.'] },
+  { id: 'p02', name: 'Dr. Austria de Transilvania', short: 'Austria', sub: 'Califica a la luz de la luna',
+    verse: ['Desde su castillo lejano', 'el Dr. Austria calificó;', 'no fue maldición ni magia:', 'tu examen en blanco quedó.'] },
+  { id: 'p03', name: 'Ing. Anselmomia', short: 'Anselmo', sub: 'Tres mil años de experiencia',
+    verse: ['El Ing. Anselmo, entre vendas,', 'te explicó todo con calma;', 'tú no entraste a ninguna clase', 'y en el acta quedó tu alma.'] },
+  { id: 'p04', name: 'Ing. Baumbra', short: 'Baume', sub: 'Aparece cuando menos lo esperas',
+    verse: ['Desde las sombras el Ing. Baume', 'te dio otra oportunidad;', 'tú la dejaste para el lunes', 'y el lunes fue la eternidad.'] },
+  { id: 'p05', name: 'Ing. Natalavera', short: 'Natale', sub: 'Recibe a la Catrina con café',
+    verse: ['La Calavera tocó a su puerta', 'y el Ing. Natale la invitó a pasar;', 'juntos revisaron tu examen', 'y ninguno lo pudo aprobar.'] },
+  { id: 'p06', name: 'Ing. Alcantaraña', short: 'Alcántara', sub: 'Ocho patas para revisar tareas',
+    verse: ['Tejiendo su telaraña', 'el Ing. Alcántara esperó', 'a que entregaras el proyecto,', 'pero ese día nunca llegó.'] },
+  { id: 'p07', name: 'Lic. José Luis Veladora', short: 'José Luis', sub: 'Alumbra hasta la última fila',
+    verse: ['El Lic. José Luis prendió una vela', 'para alumbrar tu camino;', 'tú la apagaste por flojera', 'y reprobar fue tu destino.'] },
+  { id: 'p08', name: 'Dr. Cerón de la Cripta', short: 'Cerón', sub: 'Jefe del departamento, aquí y en el más allá',
+    verse: ['Desde la Jefatura el Dr. Cerón', 'firma actas por montón;', 'tu examen llegó en blanco', 'y no le dejaste opción.'] },
+  { id: 'p09', name: 'Dra. Verónica Paola Catrina', short: 'Verónica', sub: 'La más elegante del plantel',
+    verse: ['Elegante como Catrina', 'la Dra. Verónica Paola llegó;', 'te dio asesorías de sobra', 'pero ninguna se te pegó.'] },
+  { id: 'p10', name: 'Mtra. Taniebla', short: 'Tania', sub: 'Llega entre la neblina de las 7 a.m.',
+    verse: ['Entre la niebla, la Mtra. Tania', 'te buscó en la lista sin hallar;', 'si nunca fuiste a su clase,', '¿cómo te iba a aprobar?'] },
+  { id: 'p11', name: 'Ing. Zuñigárgola', short: 'Zúñiga', sub: 'Vigila desde la torre',
+    verse: ['Como gárgola en la torre', 'el Ing. Zúñiga vigiló;', 'vio pasar todo el semestre', 'y tu tarea nunca pasó.'] },
+  { id: 'p12', name: 'Ing. Dalia de Cempasúchil', short: 'Dalia', sub: 'Marca el camino con pétalos',
+    verse: ['Como flor de cempasúchil', 'la Ing. Dalia te guió;', 'tú te perdiste en el camino', 'y ni el aroma te salvó.'] },
+  { id: 'p13', name: 'Dr. Marrón Calabaza', short: 'Marrón', sub: 'Linterna encendida en cada clase',
+    verse: ['Con su linterna de calabaza', 'el Dr. Marrón te esperó', 'en cada clase de la tarde,', 'pero tu sombra nunca entró.'] },
+  { id: 'p14', name: 'Dr. Pi-miedo', short: 'Pinedo', sub: 'Su examen da escalofríos',
+    verse: ['Le dicen el Dr. Pi-miedo', 'y su examen da escalofrío,', 'pero solo a quien no estudia:', 'ese, amigo, fue tu lío.'] },
+  { id: 'p15', name: 'Ing. Hernández Calavérez', short: 'Hdz. Pérez', sub: 'Paciencia de ultratumba',
+    verse: ['El Ing. Hernández Pérez', 'con paciencia te explicó;', 'tú dormías en la banca', 'y el semestre se acabó.'] },
+  { id: 'p16', name: 'Ing. Angélica Hechiso', short: 'Angélica', sub: 'Hechizos de puro estudio',
+    verse: ['Con un hechizo de estudio', 'la Ing. Angélica quiso ayudar;', 'pero hechizo sin esfuerzo', 'no te pudo hacer pasar.'] },
+  { id: 'p17', name: 'Ing. Erick León de Ultratumba', short: 'Erick', sub: 'Ruge desde el más allá',
+    verse: ['Desde ultratumba el Ing. Erick León', 'revisó tu entrega final;', 'no venía ni tu nombre:', 'reprobar fue lo normal.'] },
+  { id: 'p18', name: 'Mtro. Santánima', short: 'Santana', sub: 'Flota por los pasillos con su café',
+    verse: ['El Mtro. Santana flota', 'por los pasillos con su café;', 'te dio tres oportunidades', 'y no tomaste ni una, ¿ves?'] }
+];
+
+const METODOS = [
+  { id: 'm1', name: 'Examen sorpresa',       sub: 'Lunes, 7 a.m., sin aviso' },
+  { id: 'm2', name: 'Lista de asistencia',   sub: 'Tres retardos, una falta' },
+  { id: 'm3', name: 'Redondeo hacia abajo',  sub: '5.9 se queda en 5' },
+  { id: 'm4', name: 'Formato APA',           sub: 'Sangría francesa o nada' },
+  { id: 'm5', name: 'Proyecto extraviado',   sub: '“Nunca me llegó tu correo”' },
+  { id: 'm6', name: 'Pregunta capciosa',     sub: 'Ninguna de las anteriores' }
+];
+
+const LUGARES = [
+  { id: 'lcr', tag: 'LCR',  name: 'Laboratorio LCR', r: 0, c: 0, sub: 'Los equipos zumban de noche' },
+  { id: 'y1',  tag: 'Y1',   name: 'Salón Y1',        r: 0, c: 1, sub: 'Se oyen pasos sin dueño' },
+  { id: 'y2',  tag: 'Y2',   name: 'Salón Y2',        r: 0, c: 2, sub: 'El pizarrón se borra solo' },
+  { id: 'y3',  tag: 'Y3',   name: 'Salón Y3',        r: 0, c: 3, sub: 'Las bancas rechinan solas' },
+  { id: 'lca', tag: 'LCA',  name: 'Laboratorio LCA', r: 0, c: 4, sub: 'Una bata cuelga sin dueño' },
+  { id: 'y4',  tag: 'Y4',   name: 'Salón Y4',        r: 1, c: 4, sub: 'Huele a copal' },
+  { id: 'y5',  tag: 'Y5',   name: 'Salón Y5',        r: 2, c: 4, sub: 'La luz parpadea a las 7 a.m.' },
+  { id: 'lcb', tag: 'LCB',  name: 'Laboratorio LCB', r: 3, c: 4, sub: 'La puerta se cierra sola' },
+  { id: 'y6',  tag: 'Y6',   name: 'Salón Y6',        r: 3, c: 3, sub: 'Alguien dejó una veladora' },
+  { id: 'y7',  tag: 'Y7',   name: 'Salón Y7',        r: 3, c: 2, sub: 'El proyector prende solo' },
+  { id: 'y8',  tag: 'Y8',   name: 'Salón Y8',        r: 3, c: 1, sub: 'Pasan lista a medianoche' },
+  { id: 'lmac', tag: 'LMAC', name: 'Laboratorio LMAC', r: 3, c: 0, sub: 'Las pantallas despiertan solas' },
+  { id: 'jef', tag: 'Jefatura', name: 'Jefatura de Departamento', r: 2, c: 0, sub: 'Oficina del Dr. Cerón' },
+  { id: 'y9',  tag: 'Y9',   name: 'Salón Y9',        r: 1, c: 0, sub: 'El último salón del pasillo' }
+];
+const PATIO = { id: 'patio', tag: 'Patio de la Ofrenda', name: 'Patio de la Ofrenda', r: 1, c: 1, w: 3, h: 2, sub: 'Aquí se acusa' };
+const PASSAGES = { lcr: 'lcb', lcb: 'lcr', lca: 'lmac', lmac: 'lca' };
+
+const ALL = [
+  ...PROFES.map(c => ({ ...c, cat: 'p' })),
+  ...METODOS.map(c => ({ ...c, cat: 'm' })),
+  ...LUGARES.map(c => ({ ...c, cat: 'l' }))
+];
+ALL.forEach((c, i) => { c.n = i + 1; });
+const CARD = Object.fromEntries(ALL.map(c => [c.id, c]));
+const CATNAME = { p: 'Profe', m: 'Método', l: 'Lugar' };
+const CATPLURAL = { p: 'Profes', m: 'Métodos', l: 'Lugares' };
+const ROOMS = [...LUGARES, PATIO];
+const ROOM = Object.fromEntries(ROOMS.map(r => [r.id, r]));
+
+const ICONS = {
+  p: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5C12 5 7 10.5 7 18c0 4.5 2 7.5 5 9v6h16v-6c3-1.5 5-4.5 5-9 0-7.5-5-13-13-13z" fill="var(--papel)" stroke="var(--tinta)" stroke-width="1.5"/><circle cx="14.5" cy="19" r="3.8" fill="var(--tinta)"/><circle cx="25.5" cy="19" r="3.8" fill="var(--tinta)"/><path d="M20 23.5l-2 3.2h4z" fill="var(--tinta)"/><path d="M16 29v4M20 29v4M24 29v4" stroke="var(--tinta)" stroke-width="1.4"/><circle cx="20" cy="10.5" r="2" fill="var(--cempasuchil)"/></svg>',
+  m: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="5" width="22" height="30" rx="2" fill="var(--papel)" stroke="var(--tinta)" stroke-width="1.5"/><path d="M13 11h14M13 15h10" stroke="var(--tinta)" stroke-width="1.4"/><text x="20" y="31" text-anchor="middle" font-size="15" font-family="Rye, Georgia, serif" fill="var(--rojo)">5</text><circle cx="20" cy="26" r="8" fill="none" stroke="var(--rojo)" stroke-width="1.4"/></svg>',
+  l: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 35V17a10 10 0 0 1 20 0v18z" fill="var(--papel)" stroke="var(--tinta)" stroke-width="1.5"/><path d="M20 7v28" stroke="var(--tinta)" stroke-width="1.2"/><circle cx="24" cy="24" r="1.6" fill="var(--tinta)"/><circle cx="16" cy="24" r="1.6" fill="var(--tinta)"/></svg>'
+};
+
+const $ = s => document.querySelector(s);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? ms * 0.5 : ms));
+const b = id => `<b>${CARD[id].name}</b>`;
+
+function cellsOf(x) {
+  const out = [];
+  for (let r = x.r; r < x.r + (x.h || 1); r++) for (let c = x.c; c < x.c + (x.w || 1); c++) out.push([r, c]);
+  return out;
+}
+const RAPIDO_LUGARES = 8;
+const RING_3X3 = [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [1, 0]];
+function makeLayout(modo) {
+  if (modo !== 'rapido') {
+    return { modo: 'completo', cols: 5, passages: { ...PASSAGES },
+      rooms: ROOMS.map(r => ({ id: r.id, r: r.r, c: r.c, w: r.w || 1, h: r.h || 1 })) };
+  }
+  const elegidos = shuffle(LUGARES).slice(0, RAPIDO_LUGARES).sort((x, y) => LUGARES.indexOf(x) - LUGARES.indexOf(y));
+  const rooms = elegidos.map((l, i) => ({ id: l.id, r: RING_3X3[i][0], c: RING_3X3[i][1], w: 1, h: 1 }));
+  rooms.push({ id: 'patio', r: 1, c: 1, w: 1, h: 1 });
+  const at = (r, c) => rooms.find(x => x.r === r && x.c === c).id;
+  const passages = {};
+  [[[0, 0], [2, 2]], [[0, 2], [2, 0]]].forEach(([a, b]) => { passages[at(...a)] = at(...b); passages[at(...b)] = at(...a); });
+  return { modo: 'rapido', cols: 3, passages, rooms };
+}
+const placeOf = id => S.layout.rooms.find(x => x.id === id);
+const activeLugares = () => LUGARES.filter(l => placeOf(l.id));
+
+function adj(id) {
+  const a = cellsOf(placeOf(id));
+  const out = S.layout.rooms.filter(x => x.id !== id && cellsOf(x).some(([r2, c2]) => a.some(([r1, c1]) => Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1))).map(x => x.id);
+  if (S.layout.passages[id]) out.push(S.layout.passages[id]);
+  return out;
+}
+
+/* --- Música y efectos, sintetizados en el navegador --- */
+const Sound = (() => {
+  let ctx = null, master, musicBus, sfxBus, timer = null, nextTime = 0, step = 0, noiseBuf = null;
+  const prefs = (() => {
+    try { const p = JSON.parse(localStorage.getItem('qmr-sonido')); if (p && typeof p.music === 'boolean') return p; } catch (e) {}
+    return { music: false, sfx: true };
+  })();
+  const savePrefs = () => { try { localStorage.setItem('qmr-sonido', JSON.stringify(prefs)); } catch (e) {} };
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { ctx = new AC(); } catch (e) { return null; }
+      master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    return ctx;
+  }
+
+  function env(g, t, peak, attack, decay) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
+  }
+  function osc(t, type, freq, peak, attack, decay, dest) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    env(g, t, peak, attack, decay);
+    o.connect(g); g.connect(dest);
+    o.start(t); o.stop(t + attack + decay + 0.05);
+    return o;
+  }
+  // Marimba: fundamental más el parcial cercano a 4×, con caída rápida.
+  function marimba(t, midi, vel, dest) {
+    const f = hz(midi);
+    osc(t, 'sine', f, vel, 0.006, 0.9, dest);
+    osc(t, 'sine', f * 3.98, vel * 0.22, 0.004, 0.18, dest);
+  }
+  function bell(t, midi, vel, dest) {
+    const f = hz(midi);
+    [[1, 1, 1.8], [2.76, 0.45, 1.1], [5.4, 0.25, 0.6]].forEach(([mul, a, d]) => osc(t, 'sine', f * mul, vel * a, 0.004, d, dest));
+  }
+  function bass(t, midi, vel, dest) { osc(t, 'triangle', hz(midi), vel, 0.01, 0.55, dest); }
+  function noise(t, dur, peak, from, to, dest) {
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = noiseBuf;
+    f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(from, t);
+    f.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + dur * 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(dest);
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+
+  /* Vals en re menor, 3/4: bajo en el tiempo 1, acorde en 2 y 3, melodía de marimba con trémolo en notas largas. */
+  const BEAT = 0.4;
+  const CH = {
+    Dm: { root: 50, tones: [57, 62, 65] }, A7: { root: 45, tones: [57, 61, 67] }, Gm: { root: 43, tones: [55, 58, 62] },
+    F: { root: 41, tones: [57, 60, 65] }, C7: { root: 48, tones: [55, 58, 64] }
+  };
+  const BARS = ['Dm', 'A7', 'A7', 'Dm', 'Dm', 'Gm', 'A7', 'Dm', 'F', 'C7', 'F', 'Dm', 'Gm', 'Dm', 'A7', 'Dm'];
+  const _ = null;
+  const MEL = [
+    69, 74, 77,  76, _, 73,  79, 77, 76,  74, _, _,
+    77, 81, 77,  79, 82, 79,  76, 73, 69,  74, _, _,
+    72, 77, 81,  79, _, 76,  77, 76, 77,  81, _, _,
+    82, 81, 79,  77, 76, 74,  73, 76, 79,  74, _, _
+  ];
+
+  function playBeat(i, t) {
+    const bar = Math.floor(i / 3), beat = i % 3, ch = CH[BARS[bar]];
+    if (beat === 0) bass(t, ch.root, 0.32, musicBus);
+    else ch.tones.forEach(m => marimba(t, m, 0.05, musicBus));
+    const m = MEL[i];
+    if (m != null) {
+      let held = 0;
+      while (i + 1 + held < MEL.length && MEL[i + 1 + held] == null && (i + 1 + held) % 3 !== 0) held++;
+      if (held) {
+        const dur = (1 + held) * BEAT - 0.06;
+        for (let x = 0, k = 0; x < dur; x += 0.085, k++) marimba(t + x, m, 0.2 * (1 - x / dur * 0.6) * (k % 2 ? 0.8 : 1), musicBus);
+      } else marimba(t, m, 0.22, musicBus);
+    }
+    if (i === 45) bell(t, 86, 0.05, musicBus);
+  }
+  function tick() {
+    if (!ctx) return;
+    if (nextTime < ctx.currentTime - 0.1) nextTime = ctx.currentTime + 0.05;
+    while (nextTime < ctx.currentTime + 0.3) {
+      playBeat(step, nextTime);
+      nextTime += BEAT;
+      step = (step + 1) % MEL.length;
+    }
+  }
+  function startMusic() {
+    if (!ensure() || timer) return;
+    step = 0; nextTime = ctx.currentTime + 0.1;
+    musicBus.gain.cancelScheduledValues(ctx.currentTime);
+    musicBus.gain.setValueAtTime(musicBus.gain.value, ctx.currentTime);
+    musicBus.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 0.8);
+    tick();
+    timer = setInterval(tick, 80);
+  }
+  function stopMusic() {
+    if (!ctx || !timer) return;
+    musicBus.gain.cancelScheduledValues(ctx.currentTime);
+    musicBus.gain.setValueAtTime(musicBus.gain.value, ctx.currentTime);
+    musicBus.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+    clearInterval(timer); timer = null;
+  }
+
+  const FX = {
+    move: (t, d) => noise(t, 0.5, 0.18, 300, 1600, d),
+    suggest: (t, d) => { marimba(t, 74, 0.3, d); marimba(t + 0.13, 81, 0.3, d); },
+    card: (t, d) => { bell(t, 84, 0.25, d); bell(t + 0.16, 91, 0.18, d); },
+    mystery: (t, d) => { [50, 53, 56, 59].forEach((m, i) => marimba(t + i * 0.16, m, 0.3, d)); bell(t + 0.7, 62, 0.15, d); },
+    handoff: (t, d) => { bell(t, 79, 0.18, d); bell(t + 0.22, 84, 0.18, d); },
+    knock: (t, d) => [0, 0.17].forEach(x => { const o = osc(t + x, 'sine', 140, 0.6, 0.004, 0.14, d); o.frequency.exponentialRampToValueAtTime(60, t + x + 0.12); }),
+    tick: (t, d) => marimba(t, 88, 0.12, d),
+    omen: (t, d) => {
+      const o = osc(t, 'sine', 55, 0.35, 0.3, 1.6, d), lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = 5; lg.gain.value = 3; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t); lfo.stop(t + 2);
+      bell(t + 0.2, 63, 0.12, d);
+    },
+    accuse: (t, d) => { for (let i = 0; i < 14; i++) noise(t + i * 0.055, 0.06, 0.05 + i * 0.02, 180, 260, d); },
+    win: (t, d) => { [62, 66, 69, 74, 78, 81].forEach((m, i) => marimba(t + i * 0.11, m, 0.32, d)); bell(t + 0.7, 86, 0.25, d); },
+    lose: (t, d) => {
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; f.connect(d);
+      [62, 61, 60].forEach((m, i) => osc(t + i * 0.32, 'sawtooth', hz(m - 12), 0.14, 0.03, 0.3, f));
+      const o = osc(t + 0.96, 'sawtooth', hz(47), 0.14, 0.03, 1.0, f), lfo = ctx.createOscillator(), lg = ctx.createGain();
+      lfo.frequency.value = 6; lg.gain.value = 4; lfo.connect(lg); lg.connect(o.frequency); lfo.start(t + 0.96); lfo.stop(t + 2.1);
+    }
+  };
+
+  function sfx(name, delay = 0) {
+    if (!prefs.sfx || !ctx || ctx.state !== 'running' || !FX[name]) return;
+    try { FX[name](ctx.currentTime + 0.02 + delay, sfxBus); } catch (e) {}
+  }
+
+  function syncButtons() {
+    document.querySelectorAll('[data-action="music"]').forEach(b => b.setAttribute('aria-pressed', String(prefs.music)));
+    document.querySelectorAll('[data-action="sfx"]').forEach(b => b.setAttribute('aria-pressed', String(prefs.sfx)));
+  }
+
+  return {
+    // Se llama en cada clic: el navegador solo permite sonar después de una interacción.
+    unlock() { if (prefs.music || prefs.sfx) { ensure(); if (prefs.music) startMusic(); } },
+    toggleMusic() { prefs.music = !prefs.music; savePrefs(); prefs.music ? startMusic() : stopMusic(); syncButtons(); },
+    toggleSfx() { prefs.sfx = !prefs.sfx; savePrefs(); if (prefs.sfx) { ensure(); sfx('tick'); } syncButtons(); },
+    sfx, syncButtons
+  };
+})();
+
+let S = null;
+let waiter = null;
+let setupOpen = false;
+
+const PROFES_POR_PARTIDA = 6, PROFES_MIN = 4, PROFES_MAX = 8, RAPIDO_PROFES = 5, RAPIDO_METODOS = 5;
+const profesAlAzar = () => MAPA === 'rapido' ? RAPIDO_PROFES : PROFES_POR_PARTIDA;
+let PROFE_CFG = (() => {
+  try {
+    const c = JSON.parse(localStorage.getItem('qmr-profes'));
+    if (c && (c.mode === 'azar' || c.mode === 'elegir') && Array.isArray(c.pick)) {
+      return { mode: c.mode, pick: c.pick.filter(id => PROFES.some(p => p.id === id)) };
+    }
+  } catch (e) {}
+  return { mode: 'azar', pick: PROFES.slice(0, PROFES_POR_PARTIDA).map(p => p.id) };
+})();
+function saveProfeCfg() { try { localStorage.setItem('qmr-profes', JSON.stringify(PROFE_CFG)); } catch (e) {} }
+const pickOk = () => PROFE_CFG.mode === 'azar' || (PROFE_CFG.pick.length >= PROFES_MIN && PROFE_CFG.pick.length <= PROFES_MAX);
+const activeProfes = () => PROFES.filter(p => S.profes.includes(p.id));
+const inGame = (c, profes, metodos, lugares) =>
+  c.cat === 'p' ? profes.includes(c.id) : c.cat === 'm' ? metodos.includes(c.id) : lugares.includes(c.id);
+const deck = () => ALL.filter(c => inGame(c, S.profes, S.metodos, S.layout.rooms.map(x => x.id)));
+const activeMetodos = () => METODOS.filter(m => S.metodos.includes(m.id));
+let MAPA = (() => { try { return localStorage.getItem('qmr-mapa') === 'rapido' ? 'rapido' : 'completo'; } catch (e) { return 'completo'; } })();
+function saveMapa() { try { localStorage.setItem('qmr-mapa', MAPA); } catch (e) {} }
+
+const SEAT_COLORS = ['var(--cempasuchil)', 'var(--turquesa)', 'var(--rosa)', 'var(--amarillo)'];
+const AI_NAMES = ['Chabela', 'Toño del 3°B', 'La Llorona', 'Xolo'];
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+function defaultConfig() {
+  return [{ human: true, name: '' }, { human: false, name: '' }, { human: false, name: '' }, { human: false, name: '' }];
+}
+let CONFIG = (() => {
+  try {
+    const c = JSON.parse(localStorage.getItem('qmr-config'));
+    if (Array.isArray(c) && c.length === 4 && c.some(x => x && x.human)) return c.map(x => ({ human: !!x.human, name: String(x.name || '').slice(0, 24) }));
+  } catch (e) {}
+  return defaultConfig();
+})();
+function saveConfig() { try { localStorage.setItem('qmr-config', JSON.stringify(CONFIG)); } catch (e) {} }
+
+function buildPlayers(cfg) {
+  const nh = cfg.filter(c => c.human).length;
+  const ps = cfg.map((c, i) => ({
+    name: c.human ? (c.name.trim() || (nh === 1 ? 'Tú' : `Jugador ${i + 1}`)) : AI_NAMES[i],
+    human: c.human, color: SEAT_COLORS[i], out: false
+  }));
+  ps.forEach((p, i) => {
+    let s = /^Jugador \d$/.test(p.name) ? 'J' + (i + 1) : p.name.replace(/^(La|El)\s+/i, '').slice(0, 2);
+    if (ps.some((q, k) => k < i && q.short === s)) s = s[0] + (i + 1);
+    p.short = s;
+  });
+  return ps;
+}
+
+const name = j => esc(S.players[j].name);
+const who = j => `<span class="who" style="--c:${S.players[j].color}">${name(j)}</span>`;
+const isTu = j => S.players[j].name === 'Tú';
+const v = (j, tu, el) => isTu(j) ? tu : el;
+const humans = () => [0, 1, 2, 3].filter(i => S.players[i].human);
+const multi = () => humans().length > 1;
+const wait = () => new Promise(r => { waiter = r; });
+function resolveWait(x) { if (waiter) { const w = waiter; waiter = null; w(x); } }
+
+function log(t, kind = '') { S.log.unshift({ t, kind }); if (S.log.length > 250) S.log.pop(); }
+
+function newGame() {
+  waiter = null; setupOpen = false;
+  const profes = PROFE_CFG.mode === 'azar' || !pickOk()
+    ? shuffle(PROFES).slice(0, profesAlAzar()).map(p => p.id)
+    : PROFES.filter(p => PROFE_CFG.pick.includes(p.id)).map(p => p.id);
+  const layout = makeLayout(MAPA);
+  const lugares = layout.rooms.map(x => x.id).filter(id => id !== 'patio');
+  const metodos = (MAPA === 'rapido' ? shuffle(METODOS).slice(0, RAPIDO_METODOS) : METODOS).map(m => m.id);
+  const sol = { p: pick(profes), m: pick(metodos), l: pick(lugares) };
+  const rest = shuffle(ALL.filter(c => inGame(c, profes, metodos, lugares)).filter(c => ![sol.p, sol.m, sol.l].includes(c.id)).map(c => c.id));
+  const hands = [[], [], [], []];
+  rest.forEach((id, i) => hands[i % 4].push(id));
+  hands.forEach(h => h.sort((x, y) => CARD[x].n - CARD[y].n));
+  const profePos = {};
+  profes.forEach(id => { profePos[id] = pick(lugares); });
+  S = {
+    gid: Math.random().toString(36).slice(2), players: buildPlayers(CONFIG), profes, metodos, layout, sol, hands, profePos,
+    pos: ['patio', 'patio', 'patio', 'patio'], turn: 0, round: 1, phase: 'wait', viewer: null, handoff: null,
+    shown: [{}, {}, {}, {}], notes: [{}, {}, {}, {}], log: [], reveal: null, result: null, pending: null,
+    sugg: { p: null, m: null }, accusing: false, acc: { p: null, m: null, l: null }, lastAcc: null, hideResult: false,
+    ai: [0, 1, 2, 3].map(k => ({ known: hands[k].slice() }))
+  };
+  log('Ronda 1', 'rnd');
+  if (layout.modo === 'rapido') log(`Modo rápido: esta noche se investigan ${profes.length} profes, ${metodos.length} métodos y ${lugares.length} lugares.`);
+  log('Noche del 1 de noviembre. Las veladoras alumbran los pasillos. Cada quien elige un salón para empezar a investigar.');
+  if (multi()) log('Partida en el mismo dispositivo: pásenlo cuando el juego lo pida y no se asomen a las cartas de los demás.');
+  beginTurn();
+}
+
+/* --- Flujo de turnos --- */
+async function handTo(seat, msg) {
+  if (!multi() || S.viewer === seat) { S.viewer = seat; S.handoff = null; render(); return; }
+  S.viewer = null; S.handoff = { seat, msg }; render();
+  Sound.sfx('handoff');
+  await wait();
+  S.handoff = null; S.viewer = seat; render();
+}
+
+async function beginTurn() {
+  const gid = S.gid, k = S.turn, p = S.players[k];
+  if (p.out) { advance(); return; }
+  if (p.human) {
+    S.phase = 'wait';
+    await handTo(k, `Le toca a ${name(k)}.`);
+    if (gid !== S.gid) return;
+    S.phase = 'move';
+    render();
+    return;
+  }
+  S.phase = 'ai';
+  if (multi()) S.viewer = null;
+  render();
+  await sleep(650); if (gid !== S.gid) return;
+  await aiTurn(k, gid);
+  if (gid !== S.gid || S.phase === 'over') return;
+  await sleep(450); if (gid !== S.gid) return;
+  advance();
+}
+
+function advance() {
+  S.reveal = null; S.lastAcc = null;
+  S.turn = (S.turn + 1) % 4;
+  if (S.turn === 0) { S.round++; log(`Ronda ${S.round}`, 'rnd'); }
+  beginTurn();
+}
+
+/* Las demás revisan sus cartas en orden; la primera que tenga una la enseña. */
+async function refute(asker, p, m, l, gid) {
+  for (let i = 1; i <= 3; i++) {
+    const j = (asker + i) % 4;
+    const mt = S.hands[j].filter(id => id === p || id === m || id === l);
+    if (!mt.length) { log(`${who(j)} no ${v(j, 'tienes', 'tiene')} ninguna.`); render(); continue; }
+    let card;
+    if (S.players[j].human) {
+      S.phase = 'refute';
+      await handTo(j, `${name(asker)} hizo una sospecha y ${name(j)} tiene que revisar sus cartas.`);
+      if (gid !== S.gid) return null;
+      S.pending = { asker, by: j, p, m, l, matches: mt };
+      Sound.sfx('knock');
+      render();
+      card = await wait();
+      if (gid !== S.gid) return null;
+      S.pending = null; S.phase = 'resolving';
+      if (multi()) S.viewer = null;
+    } else {
+      const already = S.players[asker].human
+        ? mt.filter(id => S.shown[asker][id] === j)
+        : mt.filter(id => S.ai[asker].known.includes(id));
+      card = already.length ? pick(already) : pick(mt);
+      if (!S.players[asker].human) Sound.sfx('tick');
+    }
+    log(isTu(asker)
+      ? `${who(j)} te mostró una carta.`
+      : `${who(j)} le ${v(j, 'mostraste', 'mostró')} una carta a ${who(asker)}.`);
+    render();
+    return { by: j, card };
+  }
+  return null;
+}
+
+/* --- Turno de una persona --- */
+function humanMove(id) {
+  const k = S.turn;
+  if (!S.players[k].human || S.viewer !== k || S.phase !== 'move' || !adj(S.pos[k]).includes(id)) return;
+  S.pos[k] = id;
+  Sound.sfx('move');
+  S.phase = id === 'patio' ? 'center' : 'suggest';
+  render();
+}
+
+async function humanSuggest() {
+  const k = S.turn, { p, m } = S.sugg, l = S.pos[k];
+  if (!p || !m || S.phase !== 'suggest' || S.viewer !== k) return;
+  const gid = S.gid;
+  S.sugg = { p: null, m: null };
+  S.profePos[p] = l;
+  S.phase = 'resolving';
+  Sound.sfx('suggest');
+  log(`${who(k)} ${v(k, 'sospechas', 'sospecha')} de ${b(p)} con ${b(m)} en ${b(l)}.`);
+  render();
+  const res = await refute(k, p, m, l, gid);
+  if (gid !== S.gid) return;
+  if (res && S.players[res.by].human) {
+    await handTo(k, `${name(res.by)} ya eligió qué carta enseñar. Solo ${name(k)} debe verla.`);
+    if (gid !== S.gid) return;
+  }
+  if (res) S.shown[k][res.card] = res.by;
+  else log('Nadie pudo desmentir esa sospecha.', 'key');
+  S.reveal = res || { none: true, p, m, l };
+  Sound.sfx(res ? 'card' : 'mystery');
+  S.phase = 'reveal';
+  S.viewer = k;
+  render();
+}
+
+function humanAccuse() {
+  const k = S.turn, a = { ...S.acc };
+  if (!a.p || !a.m || !a.l) return;
+  S.accusing = false;
+  const ok = a.p === S.sol.p && a.m === S.sol.m && a.l === S.sol.l;
+  log(`${who(k)} ${v(k, 'acusas', 'acusa')} a ${b(a.p)} con ${b(a.m)} en ${b(a.l)}.`, 'key');
+  Sound.sfx('accuse');
+  if (ok) { Sound.sfx('win', 0.85); S.result = { winner: k }; S.phase = 'over'; render(); return; }
+  Sound.sfx('lose', 0.85);
+  S.players[k].out = true;
+  log(`${who(k)} se ${v(k, 'equivocaste', 'equivocó')} y ${v(k, 'quedas', 'queda')} fuera. ${v(k, 'Seguirás', 'Seguirá')} enseñando cartas.`, 'key');
+  const active = [0, 1, 2, 3].filter(i => !S.players[i].out);
+  if (!humans().some(i => !S.players[i].out)) { S.result = { winner: null, wrong: true, by: k, acc: a }; S.phase = 'over'; render(); return; }
+  if (active.length === 1) { S.result = { winner: active[0], last: true }; S.phase = 'over'; render(); return; }
+  S.lastAcc = a;
+  S.phase = 'outnotice';
+  render();
+}
+
+function endTurn() {
+  if (!S.players[S.turn].human || S.viewer !== S.turn || !['reveal', 'center', 'outnotice'].includes(S.phase)) return;
+  advance();
+}
+
+/* --- Ánimas de la computadora --- */
+async function aiTurn(k, gid) {
+  const a = S.ai[k];
+  const cands = cat => deck().filter(x => x.cat === cat && !a.known.includes(x.id)).map(x => x.id);
+  const cp = cands('p'), cm = cands('m'), cl = cands('l');
+  const here = S.pos[k];
+
+  if (cp.length === 1 && cm.length === 1 && cl.length === 1) {
+    if (here === 'patio') {
+      log(`${who(k)} acusa a ${b(cp[0])} con ${b(cm[0])} en ${b(cl[0])}.`, 'key');
+      Sound.sfx('accuse'); Sound.sfx('lose', 0.85);
+      S.result = { winner: k };
+      S.phase = 'over'; render();
+      return;
+    }
+    const n = adj(here);
+    const next = n.includes('patio') ? 'patio' : n.find(r => adj(r).includes('patio'));
+    S.pos[k] = next;
+    Sound.sfx('omen');
+    log(next === 'patio'
+      ? `${who(k)} llegó a la ofrenda y prende una veladora. Parece muy segura de algo.`
+      : `${who(k)} flota con prisa hacia ${b(next)}, rumbo a la ofrenda.`, 'key');
+    render();
+    return;
+  }
+
+  const opts = adj(here).filter(r => r !== 'patio');
+  const pref = opts.filter(r => cl.includes(r));
+  const room = pick(pref.length ? pref : opts);
+  S.pos[k] = room; Sound.sfx('move'); render();
+  await sleep(550); if (gid !== S.gid) return;
+
+  const p = pick(cp), m = pick(cm), l = room;
+  S.profePos[p] = l;
+  log(`${who(k)} sospecha de ${b(p)} con ${b(m)} en ${b(l)}.`);
+  render();
+  await sleep(650); if (gid !== S.gid) return;
+
+  const res = await refute(k, p, m, l, gid);
+  if (gid !== S.gid) return;
+  S.phase = 'ai';
+  if (res) {
+    if (!a.known.includes(res.card)) a.known.push(res.card);
+    render();
+    return;
+  }
+  log(`Nadie pudo desmentir a ${who(k)}.`, 'key');
+  [p, m, l].forEach(id => {
+    if (S.hands[k].includes(id)) return;
+    deck().filter(x => x.cat === CARD[id].cat && x.id !== id).forEach(x => { if (!a.known.includes(x.id)) a.known.push(x.id); });
+  });
+  render();
+}
+
+/* --- Render --- */
+function cardHTML(id, cls = '', tag = 'div', attrs = '') {
+  const c = CARD[id];
+  return `<${tag} class="carta ${c.cat} ${cls}" ${attrs}>
+    <span class="ct"><span>N.° ${c.n}</span><span>${CATNAME[c.cat]}</span></span>
+    <span class="ill">${ICONS[c.cat]}</span>
+    <span class="nm">${c.name}</span><span class="sb">${c.sub}</span></${tag}>`;
+}
+
+function chipGroup(cat, items, selected, action) {
+  return `<div class="grp-${cat}"><div class="lbl">${CATNAME[cat]}</div><div class="chips">${
+    items.map(c => `<button class="chip" data-action="${action}" data-cat="${cat}" data-id="${c.id}" aria-pressed="${selected === c.id}">${c.name}</button>`).join('')
+  }</div></div>`;
+}
+
+const tokHTML = (j, cls = '') => `<span class="tok ${cls} ${S.viewer === j ? 'me' : ''} ${S.players[j].out ? 'out' : ''}" style="--c:${S.players[j].color}" title="${name(j)}">${esc(S.players[j].short)}</span>`;
+
+function renderStatus() {
+  const t = S.turn;
+  let msg;
+  if (S.phase === 'over') msg = 'Se acabó la noche.';
+  else if (S.handoff) msg = `Pasando el dispositivo a ${who(S.handoff.seat)}…`;
+  else if (S.phase === 'refute' && S.pending) msg = `${who(S.pending.by)}: elige qué carta enseñarle a ${who(S.pending.asker)}.`;
+  else if (S.players[t].human) msg = (isTu(t) ? '<b>Tu turno</b>' : `Turno de ${who(t)}`) + ` · ronda ${S.round}`;
+  else msg = `Turno de ${who(t)}…`;
+  $('#status').innerHTML = tokHTML(t) + `<span>${msg}</span>`;
+}
+
+function renderMap() {
+  const k = S.turn;
+  const canMove = S.players[k].human && S.viewer === k && S.phase === 'move' && !S.handoff;
+  const moves = canMove ? adj(S.pos[k]) : [];
+  const mine = S.viewer != null ? S.pos[S.viewer] : null;
+  const order = [...S.layout.rooms].sort((x, y) => x.r - y.r || x.c - y.c).map(x => ({ ...ROOM[x.id], ...x }));
+  $('#map').style.gridTemplateColumns = `repeat(${S.layout.cols}, minmax(0, 1fr))`;
+  $('#map').classList.toggle('rapido', S.layout.modo === 'rapido');
+  $('#map').innerHTML = order.map(r => {
+    const isAdj = moves.includes(r.id);
+    const toks = S.players.map((p, j) => S.pos[j] === r.id ? tokHTML(j) : '').join('');
+    const tags = r.id === 'patio' ? '' : activeProfes().filter(p => S.profePos[p.id] === r.id).map(p => `<span class="ptag">${p.short}</span>`).join('');
+    const pas = S.layout.passages[r.id] ? `<span class="pas">Pasadizo a ${ROOM[S.layout.passages[r.id]].tag}</span>` : '';
+    const area = `grid-row:${r.r + 1} / span ${r.h || 1};grid-column:${r.c + 1} / span ${r.w || 1}`;
+    const label = `${r.name}${isAdj ? ', puedes ir aquí' : ''}`;
+    return `<button class="room ${r.id === 'patio' ? 'patio' : ''} ${isAdj ? 'adj' : ''} ${mine === r.id ? 'here' : ''}" style="${area}"
+      ${isAdj ? `data-action="move" data-id="${r.id}"` : 'tabindex="-1"'} aria-label="${label}">
+      <span class="rn">${r.tag}</span><span class="rs">${r.sub}</span>${pas}
+      <span class="toks">${toks}${tags}</span></button>`;
+  }).join('');
+}
+
+function renderPanel() {
+  const el = $('#panel'), k = S.turn;
+  if (S.phase === 'over') {
+    el.innerHTML = `<div class="row"><button class="btn" data-action="new">Otra partida</button><button class="btn ghost" data-action="show-result">Ver resultado</button></div>`;
+    return;
+  }
+  const mine = S.players[k].human && S.viewer === k && !S.handoff;
+  if (!mine || ['ai', 'refute', 'resolving', 'wait'].includes(S.phase)) {
+    el.innerHTML = `<p class="muted">${S.players[k].human
+      ? 'Las demás revisan sus cartas…'
+      : 'Las ánimas de la computadora investigan. Mira la bitácora: quién pasa y quién enseña carta también cuenta.'}</p>`;
+    return;
+  }
+  const accuseBtn = `<button class="btn rosa" data-action="accuse-open">Acusar ante la ofrenda</button>`;
+  if (S.phase === 'move') {
+    el.innerHTML = `<p>Elige uno de los lugares marcados en el mapa para flotar hacia él.</p>${S.pos[k] === 'patio' && S.round > 1 ? `<div class="row">${accuseBtn}</div>` : ''}`;
+  } else if (S.phase === 'center') {
+    el.innerHTML = `<p>${v(k, 'Estás', `${name(k)} está`)} frente a la ofrenda. Si ya sabes quién te reprobó, acusa. Si no, sigue investigando.</p>
+      <div class="row">${accuseBtn}<button class="btn ghost" data-action="end">Terminar turno</button></div>`;
+  } else if (S.phase === 'suggest') {
+    const l = S.pos[k];
+    el.innerHTML = `<p>Estás en <b>${CARD[l].name}</b>. ¿De quién sospechas y cómo crees que te reprobó?</p>
+      ${chipGroup('p', activeProfes(), S.sugg.p, 'pick')}
+      ${chipGroup('m', activeMetodos(), S.sugg.m, 'pick')}
+      <div class="row"><button class="btn" data-action="suggest" ${S.sugg.p && S.sugg.m ? '' : 'disabled'}>Sospechar</button></div>`;
+  } else if (S.phase === 'reveal') {
+    const r = S.reveal;
+    const body = r.none
+      ? `<div class="txt"><p><b>Nadie pudo desmentirte.</b> Ninguna de las demás tiene ${b(r.p)}, ${b(r.m)} ni ${b(r.l)}. Las que no estén en tu mano son parte de la respuesta.</p></div>`
+      : `${cardHTML(r.card, 'big')}<div class="txt"><p>${who(r.by)} te enseñó esta carta en secreto. Ya quedó anotada en tu libreta.</p></div>`;
+    el.innerHTML = `<div class="reveal">${body}</div><div class="row"><button class="btn" data-action="end">Terminar turno</button></div>`;
+  } else el.innerHTML = '';
+}
+
+function renderHand() {
+  const vw = S.viewer;
+  $('#hand-title').textContent = vw == null || isTu(vw) ? 'Tus cartas' : `Cartas de ${S.players[vw].name}`;
+  $('#libreta-title').textContent = vw == null || isTu(vw) ? 'Libreta' : `Libreta de ${S.players[vw].name}`;
+  $('#hand').innerHTML = vw == null
+    ? '<p class="hidden-note">Cartas ocultas. Aparecen cuando le toque a una persona.</p>'
+    : S.hands[vw].map(id => cardHTML(id)).join('');
+}
+
+function cellState(id, j) {
+  const vw = S.viewer;
+  if (j === vw && S.hands[vw].includes(id)) return { auto: true, mark: '✓' };
+  if (j !== vw && S.shown[vw][id] === j) return { auto: true, mark: '✓' };
+  const s = (S.notes[vw][id] || [0, 0, 0, 0])[j];
+  return { auto: false, s, mark: ['', '✗', '✓', '?'][s] };
+}
+
+function renderLibreta() {
+  if (S.viewer == null) { $('#libreta').innerHTML = '<p class="hidden-note">La libreta es privada. Se abre en el turno de cada persona.</p>'; return; }
+  const head = `<thead><tr><th></th>${S.players.map(p => `<th>${esc(p.short)}</th>`).join('')}</tr></thead>`;
+  const body = ['p', 'm', 'l'].map(cat => {
+    const rows = deck().filter(c => c.cat === cat).map(c => {
+      const cells = S.players.map((p, j) => cellState(c.id, j));
+      const out = cells.some(x => x.auto || x.s === 2);
+      return `<tr class="${out ? 'out' : ''}"><td class="nm">${c.name}</td>${cells.map((x, j) =>
+        `<td class="c"><button class="nb ${x.auto ? 'auto' : 's' + x.s}" ${x.auto ? 'disabled' : `data-action="note" data-id="${c.id}" data-j="${j}"`}
+          aria-label="${c.name}, ${name(j)}: ${x.mark || 'sin marca'}">${x.mark}</button></td>`).join('')}</tr>`;
+    }).join('');
+    return `<tr class="grp grp-${cat}"><th colspan="5">${CATPLURAL[cat]}</th></tr>${rows}`;
+  }).join('');
+  $('#libreta').innerHTML = `<table>${head}<tbody>${body}</tbody></table>`;
+}
+
+function renderLog() {
+  $('#log').innerHTML = S.log.map(e => `<li class="${e.kind}">${e.t}</li>`).join('');
+}
+
+function setupHTML() {
+  const nh = CONFIG.filter(c => c.human).length;
+  return `<h3>Nueva partida</h3>
+    <p class="muted">Elige quién ocupa cada lugar. Las ánimas las mueve la computadora. Si juegan varias personas en este dispositivo, el juego avisa cuándo pasarlo para que nadie vea las cartas de otra.</p>
+    <div class="seats">${CONFIG.map((c, i) => `<div class="seat">
+      <span class="tok" style="--c:${SEAT_COLORS[i]}">${i + 1}</span>
+      <div class="seg" role="group" aria-label="Lugar ${i + 1}">
+        <button data-action="seat" data-j="${i}" data-v="h" aria-pressed="${c.human}">Persona</button>
+        <button data-action="seat" data-j="${i}" data-v="a" aria-pressed="${!c.human}">Ánima</button>
+      </div>
+      ${c.human
+        ? `<input id="seat-name-${i}" class="name-in" data-j="${i}" maxlength="24" placeholder="${nh === 1 ? 'Tú' : 'Jugador ' + (i + 1)}" value="${esc(c.name)}" aria-label="Nombre del lugar ${i + 1}">`
+        : `<span class="ainame">${AI_NAMES[i]}</span>`}
+    </div>`).join('')}</div>
+    ${mapaSetupHTML()}
+    ${profeSetupHTML()}
+    ${nh ? '' : '<p class="warn">Se necesita al menos una persona.</p>'}
+    <div class="row"><button class="btn" data-action="start" ${nh && pickOk() ? '' : 'disabled'}>Empezar</button>
+      ${S ? '<button class="btn ghost" data-action="setup-cancel">Seguir con la partida actual</button>' : ''}</div>`;
+}
+
+function mapaSetupHTML() {
+  return `<div class="grp-l profe-setup"><div class="lbl">Mapa</div>
+    <div class="seg" role="group" aria-label="Mapa">
+      <button data-action="mapa" data-v="completo" aria-pressed="${MAPA === 'completo'}">Completo</button>
+      <button data-action="mapa" data-v="rapido" aria-pressed="${MAPA === 'rapido'}">Rápido</button>
+    </div>
+    <p class="muted">${MAPA === 'rapido'
+      ? `${RAPIDO_LUGARES} lugares, ${RAPIDO_METODOS} métodos y ${RAPIDO_PROFES} profes al azar, en un mapa chico. Si eligen a los profes a mano, se usan los que elijan.`
+      : `Los ${LUGARES.length} lugares: del Y1 al Y9, los laboratorios y la Jefatura.`}</p></div>`;
+}
+
+function profeSetupHTML() {
+  const c = PROFE_CFG, n = c.pick.length;
+  const chips = c.mode === 'elegir'
+    ? `<div class="chips">${PROFES.map(p => `<button class="chip" data-action="ptoggle" data-id="${p.id}" aria-pressed="${c.pick.includes(p.id)}">${p.name}</button>`).join('')}</div>
+      <p class="${pickOk() ? 'muted' : 'warn'}">${n} ${n === 1 ? 'elegido' : 'elegidos'}. Elige de ${PROFES_MIN} a ${PROFES_MAX}.</p>`
+    : `<p class="muted">En cada partida entran ${profesAlAzar()} profes distintos de los ${PROFES.length}.</p>`;
+  return `<div class="grp-p profe-setup"><div class="lbl">Profes sospechosos</div>
+    <div class="seg" role="group" aria-label="Profes sospechosos">
+      <button data-action="pmode" data-v="azar" aria-pressed="${c.mode === 'azar'}">Al azar</button>
+      <button data-action="pmode" data-v="elegir" aria-pressed="${c.mode === 'elegir'}">Elegir</button>
+    </div>${chips}</div>`;
+}
+
+function resultHTML() {
+  const r = S.result, sol = S.sol, prof = PROFES.find(p => p.id === sol.p);
+  let title, sub;
+  if (r.wrong) {
+    title = multi() ? 'Nadie acertó' : 'Acusación equivocada';
+    sub = multi() ? 'Todas las personas acusaron mal. Se van a extraordinario.'
+      : `Acusaste a ${b(r.acc.p)} con ${b(r.acc.m)} en ${b(r.acc.l)}. Te vas a extraordinario.`;
+  } else if (r.last) {
+    title = `${name(r.winner)} es la última en pie`;
+    sub = 'Las demás acusaron mal, así que gana sin acusar.';
+  } else if (S.players[r.winner].human) {
+    title = isTu(r.winner) ? '¡Descubriste quién te reprobó!' : `¡${name(r.winner)} resolvió el caso!`;
+    sub = 'Ya puede descansar en paz. Bueno, hasta el próximo ciclo escolar.';
+  } else {
+    title = `${name(r.winner)} resolvió el caso primero`;
+    sub = `${who(r.winner)} llegó a la ofrenda con la respuesta antes que ${multi() ? 'ustedes' : 'tú'}.`;
+  }
+  return `<h3>${title}</h3><p>${sub}</p>
+    <p class="muted">Lo que de verdad pasó:</p>
+    <div class="sol">${cardHTML(sol.p, 'big')}${cardHTML(sol.m, 'big')}${cardHTML(sol.l, 'big')}</div>
+    <div class="verso"><div class="vt">Calaverita para ${prof.name}</div><p>${prof.verse.join('<br>')}</p></div>
+    <div class="row"><button class="btn" data-action="new">Otra partida</button><button class="btn ghost" data-action="close">Ver el tablero</button></div>`;
+}
+
+function renderModal() {
+  const m = $('#modal');
+  let html = '', opaque = false;
+  if (setupOpen) {
+    html = setupHTML();
+  } else if (S.handoff) {
+    const h = S.handoff;
+    opaque = true;
+    html = `<div class="handoff">${tokHTML(h.seat, 'big')}
+      <h3>Pásale el dispositivo a ${name(h.seat)}</h3>
+      <p class="muted">${h.msg} Las demás personas, no se asomen.</p>
+      <button class="btn" data-action="handoff">Soy ${name(h.seat)}, continuar</button></div>`;
+  } else if (S.phase === 'refute' && S.pending && S.viewer === S.pending.by) {
+    const q = S.pending;
+    html = `<h3>Te toca desmentir</h3>
+      <p>${who(q.asker)} sospecha de ${b(q.p)} con ${b(q.m)} en ${b(q.l)}. Tienes ${q.matches.length > 1 ? 'varias de esas cartas; elige cuál enseñarle' : 'una de esas cartas y debes enseñársela'}.</p>
+      <div class="sol">${q.matches.map(id => cardHTML(id, 'big', 'button', `data-action="showcard" data-id="${id}" aria-label="Enseñar ${CARD[id].name}"`)).join('')}</div>`;
+  } else if (S.phase === 'outnotice' && S.viewer === S.turn) {
+    const sol = S.sol;
+    html = `<h3>Acusación equivocada</h3>
+      <p>Quedas fuera, pero sigues enseñando cartas cuando te toque desmentir. Esta era la respuesta; guárdala en secreto.</p>
+      <div class="sol">${cardHTML(sol.p, 'big')}${cardHTML(sol.m, 'big')}${cardHTML(sol.l, 'big')}</div>
+      <div class="row"><button class="btn" data-action="end">Terminar turno</button></div>`;
+  } else if (S.accusing) {
+    const a = S.acc;
+    html = `<h3>Acusación ante la ofrenda</h3>
+      <p class="muted">Solo hay una oportunidad. Si te equivocas, te vas a extraordinario por toda la eternidad.</p>
+      ${chipGroup('p', activeProfes(), a.p, 'apick')}${chipGroup('m', activeMetodos(), a.m, 'apick')}${chipGroup('l', activeLugares(), a.l, 'apick')}
+      <div class="row"><button class="btn rosa" data-action="accuse" ${a.p && a.m && a.l ? '' : 'disabled'}>Acusar</button>
+      <button class="btn ghost" data-action="accuse-cancel">Todavía no</button></div>`;
+  } else if (S.phase === 'over' && S.result && !S.hideResult) {
+    html = resultHTML();
+  }
+  m.hidden = !html;
+  m.classList.toggle('opaque', opaque);
+  m.innerHTML = html ? `<div class="sheet" role="dialog" aria-modal="true">${html}</div>` : '';
+}
+
+function render() {
+  if (!S) { renderModal(); return; }
+  renderStatus(); renderMap(); renderPanel(); renderHand(); renderLibreta(); renderLog(); renderModal();
+}
+
+/* --- Eventos --- */
+document.addEventListener('click', e => {
+  Sound.unlock();
+  const t = e.target.closest('[data-action]');
+  if (!t || t.disabled) return;
+  const d = t.dataset, a = d.action, id = d.id;
+  const key = ['action', 'id', 'j', 'v', 'cat'].filter(f => d[f] != null).map(f => `[data-${f}="${d[f]}"]`).join('');
+  switch (a) {
+    case 'new': setupOpen = true; render(); break;
+    case 'seat': CONFIG[+d.j].human = d.v === 'h'; saveConfig(); render(); break;
+    case 'start': if (pickOk()) newGame(); break;
+    case 'music': Sound.toggleMusic(); break;
+    case 'sfx': Sound.toggleSfx(); break;
+    case 'mapa': MAPA = d.v === 'rapido' ? 'rapido' : 'completo'; saveMapa(); render(); break;
+    case 'pmode': PROFE_CFG.mode = d.v; saveProfeCfg(); render(); break;
+    case 'ptoggle': {
+      const i = PROFE_CFG.pick.indexOf(id);
+      if (i >= 0) PROFE_CFG.pick.splice(i, 1); else PROFE_CFG.pick.push(id);
+      saveProfeCfg(); render(); break;
+    }
+    case 'setup-cancel': setupOpen = false; render(); break;
+    case 'handoff': resolveWait(); break;
+    case 'move': humanMove(id); break;
+    case 'pick': S.sugg[d.cat] = id; render(); break;
+    case 'suggest': humanSuggest(); break;
+    case 'end': endTurn(); break;
+    case 'accuse-open': S.accusing = true; S.acc = { p: null, m: null, l: null }; render(); break;
+    case 'apick': S.acc[d.cat] = id; render(); break;
+    case 'accuse-cancel': S.accusing = false; render(); break;
+    case 'accuse': humanAccuse(); break;
+    case 'showcard': if (S.pending && S.viewer === S.pending.by) resolveWait(id); break;
+    case 'note': {
+      if (S.viewer == null) break;
+      const j = +d.j, notes = S.notes[S.viewer];
+      const n = notes[id] || [0, 0, 0, 0];
+      n[j] = (n[j] + 1) % 4; notes[id] = n; Sound.sfx('tick'); render(); break;
+    }
+    case 'close': S.hideResult = true; render(); break;
+    case 'show-result': S.hideResult = false; render(); break;
+  }
+  const again = document.querySelector(key);
+  if (again && !document.contains(t)) again.focus();
+  else if (!document.contains(t)) { const first = document.querySelector('#modal:not([hidden]) button, #modal:not([hidden]) input'); if (first) first.focus(); }
+});
+
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('name-in')) { CONFIG[+e.target.dataset.j].name = e.target.value.slice(0, 24); saveConfig(); }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (setupOpen && S) { setupOpen = false; render(); }
+  else if (S && S.accusing) { S.accusing = false; render(); }
+});
+
+/* Papel picado */
+(() => {
+  const cols = ['var(--rosa)', 'var(--cempasuchil)', 'var(--turquesa)', 'var(--morado)', 'var(--amarillo)'];
+  $('#picado').innerHTML = Array.from({ length: 26 }, (_, i) =>
+    `<span class="flag" style="--c:${cols[i % cols.length]};--d:${(-i * 0.37).toFixed(2)}s"></span>`).join('');
+})();
+
+/* Arranque, conservando la partida si la página se actualiza */
+function start(data) {
+  if (data && data.S && data.S.players && data.S.profes && data.S.metodos && data.S.layout) {
+    S = data.S;
+    S.handoff = null; S.pending = null; S.accusing = false;
+    if (S.phase === 'over') { render(); return; }
+    if (S.phase === 'outnotice') { advance(); return; }
+    if (['wait', 'ai', 'refute', 'resolving'].includes(S.phase)) { S.viewer = null; beginTurn(); return; }
+    render();
+  } else newGame();
+}
+window.claude?.hot?.snapshot?.(() => ({ S }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
